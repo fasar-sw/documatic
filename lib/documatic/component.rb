@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 require 'erb'
 
 module Documatic
@@ -11,7 +13,8 @@ module Documatic
       @erb_text = erb_text
       @erb = ERB.new(erb_text)
     end
-    
+    # -------------------------------------------------------------------------
+
     # Injects the provided assigns into this component and sends it through ERB.
     def process(local_assigns)
       if local_assigns.is_a? Binding
@@ -35,6 +38,7 @@ module Documatic
         raise
       end
     end
+    # -------------------------------------------------------------------------
 
     # Returns a REXML::Document constructed from the text of this
     # component.  Note that this flushes self.text: subsequently if
@@ -44,6 +48,7 @@ module Documatic
     def xml
       @xml ||= REXML::Document.new( remove_instance_variable(:@text) )
     end
+    # -------------------------------------------------------------------------
 
     # Returns the text of this component.  Note that this flushes
     # self.xml: subsequently if self.xml is called it will be
@@ -51,6 +56,7 @@ module Documatic
     def text
       @text ||= ( remove_instance_variable(:@xml) ).to_s
     end
+    # -------------------------------------------------------------------------
 
     # Merge the auto-styles from the cached partials into
     # <office:automatic-styles> of this component.  This method isn't
@@ -66,7 +72,8 @@ module Documatic
         end
       end
     end
-    
+    # -------------------------------------------------------------------------
+
     # to_s() is a synonym for text()
     alias_method :to_s, :text
 

@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 require 'ruport'
 
 require 'documatic/component'
@@ -21,7 +23,7 @@ module Documatic
     # component -- that's why it only adds the helper to the text
     # component.
     def add_helper(helper_module)
-      Documatic::OpenDocumentText::Component.send(:include, helper_module)
+      Documatic::OpenDocumentText::Component.send( :include, helper_module )
     end
 
     # Short-cut method for including a helper in
@@ -33,8 +35,7 @@ module Documatic
     # Short-cut method for including a helper in
     # Documatic::OpenDocumentSpreadsheet::Component.
     def spreadsheet_helper(helper_module)
-      Documatic::OpenDocumentSpreadsheet::Component.send(:include,
-                                                         helper_module)
+      Documatic::OpenDocumentSpreadsheet::Component.send( :include, helper_module )
     end
 
   end  # class << self

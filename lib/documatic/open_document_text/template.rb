@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 require 'rexml/document'
 require 'rexml/attribute'
 require 'zip/zip'
@@ -74,34 +76,50 @@ module Documatic::OpenDocumentText
       # e.g. accessing the template's JAR or the content or styles
       # components.  The template will be saved after the block exits.
       def process_template(args, &block)
-        if args[:options] && args[:options].template_file &&
-            args[:options].output_file
-          output_dir = File.dirname(args[:options].output_file)
-          File.directory?(output_dir) || FileUtils.mkdir_p(output_dir)
-          FileUtils.cp(args[:options].template_file, args[:options].output_file)
-          template = self.new(args[:options].output_file)
-          template.process :data => args[:data], :options => args[:options],
-          :template => template, :master => template
-          template.save
-          if block
-            block.call(template)
-            template.save
-          end
-          template.close
-        else
-          raise ArgumentError, 'Need to specify both :template_file and :output_file in options'
+        raise(
+          ArgumentError,
+          'Need to specify both :template_file and :output_file in options'
+        ) unless( args[:options] && args[:options].template_file &&
+                  args[:options].output_file )
+
+        output_dir = File.dirname(args[:options].output_file)
+        File.directory?(output_dir) || FileUtils.mkdir_p(output_dir)
+        FileUtils.cp(args[:options].template_file, args[:options].output_file)
+
+        template = self.new( args[:options].output_file )
+        template.process( :data => args[:data], :options => args[:options],
+                          :template => template, :master => template )
+        template.save()
+        if block
+          block.call(template)
+          template.save()
         end
+        template.close
       end
-            
+
     end  # class << self
-    
+    # -------------------------------------------------------------------------
+
+
     def initialize(filename)
       @filename = filename
       @jar = Zip::ZipFile.open(@filename)
       return true
     end
-    
-    def process(local_assigns = {})
+    # -------------------------------------------------------------------------
+
+
+    # Compile and process a template at the same time.
+    #
+    # This method invokes <tt>DTC#process()</tt> passing all the specified options
+    # in Hash form. Basic supported keys are:
+    #
+    # :data     => data to be processed
+    # :options  => processing options
+    # :template => Template instance to be processed
+    # :master   => Master Template instance
+    #
+    def process( local_assigns = {} )
       # Compile this template, if not compiled already.
       self.jar.find_entry('documatic/master') || self.compile
       # Process the styles (incl. headers and footers).
@@ -110,7 +128,7 @@ module Documatic::OpenDocumentText
       @styles.process(local_assigns)
       # Process the main (body) content.
       @content = DTC.new( self.jar.read('documatic/master/content.erb') )
-      @content.process(local_assigns)
+      @content.process( local_assigns )
       # Merge styles from any partials into the main template
       if self.partials.keys.length > 0
         @content.merge_partial_styles(self.partials.values)
@@ -124,6 +142,8 @@ module Documatic::OpenDocumentText
         end
       end
     end
+    # -------------------------------------------------------------------------
+
 
     def save
       # Gather all the styles from the partials, add them to the master's styles.
@@ -138,11 +158,17 @@ module Documatic::OpenDocumentText
         end
       end
     end
+    # -------------------------------------------------------------------------
+
 
     def close
       self.jar.close
     end
-    
+    # -------------------------------------------------------------------------
+
+
+    # Simply compiles the Template
+    #
     def compile
       # Read the raw files
       @content_raw = pretty_xml('content.xml')
@@ -161,6 +187,8 @@ module Documatic::OpenDocumentText
         f.write @styles_erb
       end
     end
+    # -------------------------------------------------------------------------
+
 
     # Returns a hash of images added during the processing of the
     # current template.  (This method is not intended to be called
@@ -170,6 +198,7 @@ module Documatic::OpenDocumentText
     def images
       @images ||= Hash.new
     end        
+
     
     # Add an image to the current template.  The argument is the
     # path and filename of the image to be added to the template.
@@ -186,16 +215,20 @@ module Documatic::OpenDocumentText
       end
     end
 
+
     def partials
       @partials ||= Hash.new
     end
 
+
     def add_partial(full_path, partial)
       self.partials[full_path] = partial
     end
-    
+    # -------------------------------------------------------------------------
+
     
     protected
+
 
     def pretty_xml(filename)
       # Pretty print the XML source
@@ -205,7 +238,9 @@ module Documatic::OpenDocumentText
       xml_doc.write(xml_text, 0)
       return xml_text
     end
-    
+    # -------------------------------------------------------------------------
+
+
     # Change OpenDocument line breaks and tabs in the ERb code to regular characters.
     def unnormalize(code)
       code = code.gsub(/<text:line-break\/>/, "\n")
@@ -213,6 +248,8 @@ module Documatic::OpenDocumentText
       code = code.gsub(/<text:s(\/|(\s[^>]*))>/, " ")
       return REXML::Text.unnormalize(code)
     end
+    # -------------------------------------------------------------------------
+
 
     # Massage OpenDocument XML into ERb.  (This is the heart of the compiler.)
     def erbify(code)
@@ -362,6 +399,8 @@ module Documatic::OpenDocumentText
       
       return result
     end
+    # -------------------------------------------------------------------------
 
   end
+  # ---------------------------------------------------------------------------
 end
