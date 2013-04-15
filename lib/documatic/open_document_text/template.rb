@@ -161,7 +161,9 @@ module Documatic::OpenDocumentText
     # -------------------------------------------------------------------------
 
 
-    def close
+    def close                                       # Remove compiled content before closing to avoid corruption of files:
+      self.jar.remove('documatic/master/styles.erb')
+      self.jar.remove('documatic/master/content.erb')
       self.jar.close
     end
     # -------------------------------------------------------------------------

@@ -10,8 +10,8 @@ module Documatic
     attr_accessor :erb_text
 
     def initialize(erb_text)
-      @erb_text = erb_text
-      @erb = ERB.new(erb_text)
+      @erb_text = erb_text.force_encoding('UTF-8')
+      @erb = ERB.new( erb_text.force_encoding('UTF-8') )
     end
     # -------------------------------------------------------------------------
 
@@ -25,11 +25,10 @@ module Documatic
         end
         context = binding
       end
-
       begin
         @xml = nil ; @text = self.erb.result(context)
       rescue
-        lines = self.erb_text.split /\n/
+        lines = self.erb_text.split( /\n/ )
         counter = 1
         lines.each do |line|
           puts "#{counter}:\t#{line}"
